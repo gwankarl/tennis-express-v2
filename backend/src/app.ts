@@ -1,23 +1,48 @@
 import express from 'express';
+import cors from 'cors';
+import helmet from 'helmet';
+
 import { errorHandler } from './middleware/error-handler.js';
 import { notFoundHandler } from './middleware/not-found.js';
+import { requestIdMiddleware } from './middleware/request-id.js';
+import { requestLoggerMiddleware } from './middleware/request-logger.js';
 
-const app = express();
+import v1Router from './routes/v1/index.js';
 
-app.use(express.json());
+export function createApp() {
+  const app = express();
 
-// Basic endpoint to confirm that the HTTP application is responding.
-app.get('/api/v1/health', (_req, res) => {
-  res.status(200).json({
-    success: true,
-    data: {
-      status: 'ok',
-    },
-  });
-});
+  app.use(helmet());
 
-// Register feature routes before the not-found and error handlers.
-app.use(notFoundHandler);
-app.use(errorHandler);
+  app.use(requestIdMiddleware);
+  app.use(requestLoggerMiddleware);
 
-export default app;
+  app.use(
+    cors({
+      origin: (origin, callback) => {
+        const allowedOrigin = process.env.CLIENT_URL || 'http://localhost:5173';
+
+        if (!origin || origin === allowedOrigin) {
+          callback(null, true);
+          return;
+        }
+
+        callback(null, false);
+      },
+      credentials: true,
+    }),
+  );
+
+  app.use(express.json({ limit: '1mb' }));
+  app.use(express.urlencoded({ extended: false, limit: '1mb' }));
+
+  app.use('/api/v1', v1Router);
+
+  // Handle requests that did not match a registered route.
+  app.use(notFoundHandler);
+
+  // Centralized error handling must be registered last.
+  app.use(errorHandler);
+
+  return app;
+}
