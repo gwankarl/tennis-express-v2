@@ -18,6 +18,19 @@ const envSchema = z
       ),
 
     CLIENT_URL: z.string().url('CLIENT_URL must be a valid URL'),
+
+    EMAIL_PROVIDER: z.enum(['mock', 'resend']).default('mock'),
+
+    EMAIL_ENABLED: z
+      .enum(['true', 'false'])
+      .default('false')
+      .transform((value) => value === 'true'),
+
+    RESEND_API_KEY: z.string().default(''),
+
+    EMAIL_FROM: z.string().default(''),
+
+    EMAIL_REPLY_TO: z.string().default(''),
   })
   .superRefine((config, context) => {
     if (
@@ -49,4 +62,9 @@ export const env = Object.freeze({
   port: result.data.PORT,
   mongodbUri: result.data.MONGODB_URI,
   clientUrl: result.data.CLIENT_URL,
+  emailProvider: result.data.EMAIL_PROVIDER,
+  emailEnabled: result.data.EMAIL_ENABLED,
+  resendApiKey: result.data.RESEND_API_KEY,
+  emailFrom: result.data.EMAIL_FROM,
+  emailReplyTo: result.data.EMAIL_REPLY_TO,
 });
