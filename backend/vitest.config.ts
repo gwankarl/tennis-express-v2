@@ -1,11 +1,5 @@
 import { defineConfig } from 'vitest/config';
 
-declare module 'vitest' {
-  export interface ProvidedContext {
-    mongodbUri: string;
-  }
-}
-
 export default defineConfig({
   test: {
     globalSetup: ['./tests/setup/global-setup.ts'],

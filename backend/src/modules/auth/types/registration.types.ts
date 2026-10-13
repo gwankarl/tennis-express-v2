@@ -47,10 +47,10 @@ export interface VerificationEmailSender {
 }
 
 /**
- * Contract for hashing passwords before they are persisted.
+ * Contract for hashing passwords and verifying submitted credentials.
  *
- * Implementations must return the encoded password hash, never the
- * original password.
+ * Implementations must never expose the original password or stored hash
+ * through application responses.
  */
 export interface PasswordHasher {
   /**
@@ -60,6 +60,15 @@ export interface PasswordHasher {
    * @returns A promise resolving to the encoded password hash.
    */
   hash(password: string): Promise<string>;
+
+  /**
+   * Checks whether a submitted password matches an encoded password hash.
+   *
+   * @param password - The password supplied during login.
+   * @param encodedHash - The previously stored password hash.
+   * @returns True when the password matches; otherwise false.
+   */
+  verify(password: string, encodedHash: string): Promise<boolean>;
 }
 
 /**

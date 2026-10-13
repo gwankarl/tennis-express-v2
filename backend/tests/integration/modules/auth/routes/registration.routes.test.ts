@@ -28,6 +28,7 @@ function createRegistrationService(options?: {
 }) {
   const passwordHasher = {
     hash: vi.fn().mockResolvedValue('test-password-hash'),
+    verify: vi.fn().mockResolvedValue(false),
   };
 
   const passwordCompromiseChecker = {

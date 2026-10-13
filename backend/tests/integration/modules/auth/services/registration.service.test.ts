@@ -20,6 +20,7 @@ describe('RegistrationService', () => {
   beforeEach(() => {
     passwordHasher = {
       hash: vi.fn().mockResolvedValue('argon2id-hashed-password'),
+      verify: vi.fn().mockResolvedValue(false),
     };
 
     passwordCompromiseChecker = {

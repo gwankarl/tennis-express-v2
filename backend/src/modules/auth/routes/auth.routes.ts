@@ -14,6 +14,13 @@ import type { ResendVerificationService } from '../services/resend-verification.
 import { createResendVerificationService } from '../services/resend-verification-service.factory.js';
 import { resendVerificationSchema } from '../validations/resend-verification.validation.js';
 import { createResendVerificationRateLimit } from '../middleware/resend-verification-rate-limit.js';
+import { createLoginController } from '../controllers/login.controller.js';
+import { AuthTokenService } from '../services/auth-token.service.js';
+import type { LoginService } from '../services/login.service.js';
+import { createLoginService } from '../services/login-service.factory.js';
+import { loginSchema } from '../validations/login.validation.js';
+import { RefreshTokenController } from '../controllers/refresh-token.controller.js';
+import { refreshTokenSchema } from '../validations/refresh-token.validation.js';
 
 /**
  * Optional dependencies for constructing the authentication router.
@@ -30,6 +37,12 @@ export interface AuthRouterDependencies {
 
   /** Service used to resend verification email. */
   resendVerificationService?: ResendVerificationService;
+
+  /** Service used to authenticate login credentials. */
+  loginService?: LoginService;
+
+  /** Service used to issue authentication tokens and sessions. */
+  authTokenService?: AuthTokenService;
 }
 
 /**
@@ -58,6 +71,13 @@ export function createAuthRouter(
   const resendVerificationService =
     dependencies.resendVerificationService ?? createResendVerificationService();
 
+  const loginService = dependencies.loginService ?? createLoginService();
+
+  const authTokenService =
+    dependencies.authTokenService ?? new AuthTokenService();
+
+  const refreshTokenController = new RefreshTokenController(authTokenService);
+
   router.post(
     '/register',
     validateRequest('body', registrationSchema),
@@ -75,6 +95,18 @@ export function createAuthRouter(
     resendVerificationRateLimit,
     validateRequest('body', resendVerificationSchema),
     createResendVerificationController(resendVerificationService),
+  );
+
+  router.post(
+    '/login',
+    validateRequest('body', loginSchema),
+    createLoginController(loginService, authTokenService),
+  );
+
+  router.post(
+    '/refresh-token',
+    validateRequest('body', refreshTokenSchema),
+    refreshTokenController.refresh.bind(refreshTokenController),
   );
 
   return router;

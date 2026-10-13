@@ -31,4 +31,19 @@ export class Argon2PasswordHasher implements PasswordHasher {
   async hash(password: string): Promise<string> {
     return argon2.hash(password, ARGON2_OPTIONS);
   }
+
+  /**
+   * Verifies a password against its stored Argon2 hash.
+   *
+   * @param password - The password supplied during login.
+   * @param encodedHash - The encoded hash retrieved from the user record.
+   * @returns Whether the password matches the stored hash.
+   */
+  async verify(password: string, encodedHash: string): Promise<boolean> {
+    try {
+      return await argon2.verify(encodedHash, password);
+    } catch {
+      return false;
+    }
+  }
 }

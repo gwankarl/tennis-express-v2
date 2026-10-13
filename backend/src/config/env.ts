@@ -19,6 +19,17 @@ const envSchema = z
 
     CLIENT_URL: z.string().url('CLIENT_URL must be a valid URL'),
 
+    JWT_ACCESS_SECRET: z
+      .string()
+      .min(32, 'JWT_ACCESS_SECRET must contain at least 32 characters'),
+
+    ACCESS_TOKEN_TTL_SECONDS: z.coerce
+      .number()
+      .int()
+      .min(60)
+      .max(3600)
+      .default(900),
+
     EMAIL_PROVIDER: z.enum(['mock', 'resend']).default('mock'),
 
     EMAIL_ENABLED: z
@@ -62,6 +73,8 @@ export const env = Object.freeze({
   port: result.data.PORT,
   mongodbUri: result.data.MONGODB_URI,
   clientUrl: result.data.CLIENT_URL,
+  jwtAccessSecret: result.data.JWT_ACCESS_SECRET,
+  accessTokenTtlSeconds: result.data.ACCESS_TOKEN_TTL_SECONDS,
   emailProvider: result.data.EMAIL_PROVIDER,
   emailEnabled: result.data.EMAIL_ENABLED,
   resendApiKey: result.data.RESEND_API_KEY,
