@@ -3,6 +3,11 @@ import type { RequestHandler } from 'express';
 import type { AuthTokenService } from '../services/auth-token.service.js';
 import type { LoginService } from '../services/login.service.js';
 
+import {
+  REFRESH_TOKEN_COOKIE_NAME,
+  refreshCookieOptions,
+} from '../../../config/auth-cookie.js';
+
 /**
  * Creates the HTTP handler for user login.
  *
@@ -26,13 +31,18 @@ export function createLoginController(
         roles: result.user.roles as ('buyer' | 'seller' | 'both' | 'admin')[],
       });
 
+      res.cookie(
+        REFRESH_TOKEN_COOKIE_NAME,
+        tokens.refreshToken,
+        refreshCookieOptions,
+      );
+
       res.status(200).json({
         success: true,
         data: {
           user: result.user,
           tokens: {
             accessToken: tokens.accessToken,
-            refreshToken: tokens.refreshToken,
             tokenType: 'Bearer',
             expiresIn: tokens.accessTokenExpiresIn,
           },

@@ -117,6 +117,12 @@ const userSchema = new Schema<User>(
       required: false,
       select: false,
     },
+    googleId: {
+      type: String,
+      required: false,
+      select: false,
+      trim: true,
+    },
     emailVerifiedAt: {
       type: Date,
       default: null,
@@ -159,6 +165,13 @@ const userSchema = new Schema<User>(
 /* Enforces email uniqueness and supports account-status filtering. */
 userSchema.index({ email: 1 }, { unique: true });
 userSchema.index({ status: 1 });
+userSchema.index(
+  { googleId: 1 },
+  {
+    unique: true,
+    partialFilterExpression: { googleId: { $type: 'string' } },
+  },
+);
 
 /*
  * Reuse the registered model when available, avoiding duplicate model

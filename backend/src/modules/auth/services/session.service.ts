@@ -1,3 +1,5 @@
+import type { ClientSession } from 'mongoose';
+
 import { AppError } from '../../../shared/errors/app-error.js';
 import { SessionModel } from '../models/session.model.js';
 import type { AuthSession } from '../types/session.types.js';
@@ -151,5 +153,38 @@ export class SessionService {
     }).select('+refreshTokenHash');
 
     return session ? (session.toObject() as AuthSession) : null;
+  }
+
+  /**
+   * Revokes every active session belonging to a user.
+   *
+   * @param userId - Identifier of the account whose sessions are revoked.
+   * @returns The number of sessions revoked.
+   */
+
+  async revokeAllUserSessions(
+    userId: string,
+    session?: ClientSession,
+  ): Promise<number> {
+    if (!/^[a-f\d]{24}$/i.test(userId)) {
+      return 0;
+    }
+
+    const result = await SessionModel.updateMany(
+      {
+        userId,
+        status: 'active',
+        revokedAt: null,
+      },
+      {
+        $set: {
+          status: 'revoked',
+          revokedAt: new Date(),
+        },
+      },
+      { session },
+    );
+
+    return result.modifiedCount;
   }
 }

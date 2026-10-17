@@ -19,6 +19,8 @@ const envSchema = z
 
     CLIENT_URL: z.string().url('CLIENT_URL must be a valid URL'),
 
+    GOOGLE_CLIENT_ID: z.string().default(''),
+
     JWT_ACCESS_SECRET: z
       .string()
       .min(32, 'JWT_ACCESS_SECRET must contain at least 32 characters'),
@@ -29,6 +31,25 @@ const envSchema = z
       .min(60)
       .max(3600)
       .default(900),
+
+    REFRESH_TOKEN_TTL_SECONDS: z.coerce
+      .number()
+      .int()
+      .min(300)
+      .max(2592000)
+      .default(604800),
+
+    PASSWORD_RESET_TOKEN_TTL_SECONDS: z.coerce
+      .number()
+      .int()
+      .min(300)
+      .max(3600)
+      .default(1800),
+
+    COOKIE_SECURE: z
+      .enum(['true', 'false'])
+      .default('false')
+      .transform((value) => value === 'true'),
 
     EMAIL_PROVIDER: z.enum(['mock', 'resend']).default('mock'),
 
@@ -73,6 +94,7 @@ export const env = Object.freeze({
   port: result.data.PORT,
   mongodbUri: result.data.MONGODB_URI,
   clientUrl: result.data.CLIENT_URL,
+  googleClientId: result.data.GOOGLE_CLIENT_ID,
   jwtAccessSecret: result.data.JWT_ACCESS_SECRET,
   accessTokenTtlSeconds: result.data.ACCESS_TOKEN_TTL_SECONDS,
   emailProvider: result.data.EMAIL_PROVIDER,
@@ -80,4 +102,7 @@ export const env = Object.freeze({
   resendApiKey: result.data.RESEND_API_KEY,
   emailFrom: result.data.EMAIL_FROM,
   emailReplyTo: result.data.EMAIL_REPLY_TO,
+  refreshTokenTtlSeconds: result.data.REFRESH_TOKEN_TTL_SECONDS,
+  cookieSecure: result.data.COOKIE_SECURE,
+  passwordResetTokenTtlSeconds: result.data.PASSWORD_RESET_TOKEN_TTL_SECONDS,
 });

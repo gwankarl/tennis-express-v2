@@ -59,10 +59,27 @@ describe('POST /api/v1/auth/login', () => {
     expect(response.body.data.user.passwordHash).toBeUndefined();
     expect(response.body.data.tokens).toMatchObject({
       accessToken: expect.any(String),
-      refreshToken: expect.any(String),
       tokenType: 'Bearer',
       expiresIn: expect.any(Number),
     });
+
+    expect(response.body.data.tokens.refreshToken).toBeUndefined();
+
+    const setCookieHeader = response.headers['set-cookie'];
+
+    expect(setCookieHeader).toBeDefined();
+
+    const cookies = Array.isArray(setCookieHeader)
+      ? setCookieHeader
+      : [setCookieHeader];
+
+    const refreshCookie = cookies.find((cookie: string) =>
+      cookie.startsWith('refreshToken='),
+    );
+
+    expect(refreshCookie).toBeDefined();
+    expect(refreshCookie).toMatch(/HttpOnly/i);
+    expect(refreshCookie).toMatch(/SameSite=Lax/i);
 
     expect(await SessionModel.countDocuments()).toBe(1);
 

@@ -58,6 +58,7 @@ export interface User {
   _id: Types.ObjectId;
   email: string;
   passwordHash?: string;
+  googleId?: string;
   emailVerifiedAt: Date | null;
   roles: UserRole[];
   status: UserStatus;

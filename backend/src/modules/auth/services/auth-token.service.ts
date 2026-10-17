@@ -1,3 +1,4 @@
+import { env } from '../../../config/env.js';
 import type { UserRole } from '../../users/types/user.types.js';
 import { AccessTokenService } from './access-token.service.js';
 import { RefreshTokenService } from './refresh-token.service.js';
@@ -38,11 +39,11 @@ export class AuthTokenService {
     const generatedRefreshToken = this.refreshTokenService.generateToken();
 
     /* Refresh sessions last seven days; rotation will be handled separately. */
-    const refreshExpiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+    const expiresAt = new Date(Date.now() + env.refreshTokenTtlSeconds * 1000);
 
     const session = await this.sessionService.createSession({
       userId: input.userId,
-      expiresAt: refreshExpiresAt,
+      expiresAt,
       refreshTokenHash: generatedRefreshToken.tokenHash,
     });
 
@@ -124,5 +125,24 @@ export class AuthTokenService {
       sessionId: rotatedSession._id.toString(),
       accessTokenExpiresIn: this.accessTokenService.getExpiresInSeconds(),
     };
+  }
+
+  /**
+   * Revokes the session associated with a refresh token.
+   *
+   * @param token - The refresh token presented by the client.
+   * @returns Whether a matching active session was revoked.
+   */
+  async revokeRefreshToken(token: string): Promise<boolean> {
+    const tokenHash = this.refreshTokenService.hashToken(token);
+
+    const session =
+      await this.sessionService.findValidSessionByRefreshTokenHash(tokenHash);
+
+    if (!session) {
+      return false;
+    }
+
+    return this.sessionService.revokeSession(session._id.toString());
   }
 }

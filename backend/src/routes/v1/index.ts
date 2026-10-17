@@ -4,6 +4,7 @@ import { createAuthRouter } from '../../modules/auth/routes/auth.routes.js';
 import type { EmailVerificationService } from '../../modules/auth/services/email-verification.service.js';
 import type { RegistrationService } from '../../modules/auth/services/registration.service.js';
 import type { ResendVerificationService } from '../../modules/auth/services/resend-verification.service.js';
+import type { GoogleAuthService } from '../../modules/auth/services/google-auth.service.js';
 
 /**
  * Optional dependencies for constructing the version 1 API router.
@@ -19,6 +20,9 @@ export interface V1RouterDependencies {
   emailVerificationService?: EmailVerificationService;
 
   resendVerificationService?: ResendVerificationService;
+
+  /** Google authentication service forwarded to the authentication router. */
+  googleAuthService?: GoogleAuthService;
 }
 
 /**
@@ -49,6 +53,7 @@ export function createV1Router(
       registrationService: dependencies.registrationService,
       emailVerificationService: dependencies.emailVerificationService,
       resendVerificationService: dependencies.resendVerificationService,
+      googleAuthService: dependencies.googleAuthService,
     }),
   );
 

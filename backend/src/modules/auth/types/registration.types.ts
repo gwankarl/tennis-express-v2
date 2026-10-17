@@ -85,3 +85,14 @@ export interface PasswordCompromiseChecker {
    */
   isPasswordCompromised(password: string): Promise<boolean>;
 }
+
+/**
+ * Contract for delivering password-reset emails.
+ */
+export interface PasswordResetEmailSender {
+  sendPasswordResetEmail(input: {
+    to: string;
+    recipientName: string;
+    token: string;
+  }): Promise<void>;
+}

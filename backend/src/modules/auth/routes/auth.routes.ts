@@ -20,7 +20,22 @@ import type { LoginService } from '../services/login.service.js';
 import { createLoginService } from '../services/login-service.factory.js';
 import { loginSchema } from '../validations/login.validation.js';
 import { RefreshTokenController } from '../controllers/refresh-token.controller.js';
-import { refreshTokenSchema } from '../validations/refresh-token.validation.js';
+import { createLogoutController } from '../controllers/logout.controller.js';
+
+import { createForgotPasswordController } from '../controllers/forgot-password.controller.js';
+import { createForgotPasswordRateLimit } from '../middleware/forgot-password-rate-limit.js';
+import type { ForgotPasswordService } from '../services/forgot-password.service.js';
+import { createForgotPasswordService } from '../services/forgot-password-service.factory.js';
+import { forgotPasswordSchema } from '../validations/forgot-password.validation.js';
+
+import { createResetPasswordController } from '../controllers/reset-password.controller.js';
+import { createResetPasswordService } from '../services/reset-password-service.factory.js';
+import { resetPasswordSchema } from '../validations/reset-password.validation.js';
+
+import { createGoogleAuthController } from '../controllers/google-auth.controller.js';
+import { GoogleAuthService } from '../services/google-auth.service.js';
+import { googleAuthSchema } from '../validations/google-auth.validation.js';
+import { GoogleTokenVerifierService } from '../services/google-token-verifier.service.js';
 
 /**
  * Optional dependencies for constructing the authentication router.
@@ -43,6 +58,12 @@ export interface AuthRouterDependencies {
 
   /** Service used to issue authentication tokens and sessions. */
   authTokenService?: AuthTokenService;
+
+  /** Service used to request password recovery. */
+  forgotPasswordService?: ForgotPasswordService;
+
+  /** Service used to authenticate Google identities. */
+  googleAuthService?: GoogleAuthService;
 }
 
 /**
@@ -78,6 +99,21 @@ export function createAuthRouter(
 
   const refreshTokenController = new RefreshTokenController(authTokenService);
 
+  const logoutController = createLogoutController(authTokenService);
+
+  const forgotPasswordRateLimit = createForgotPasswordRateLimit();
+
+  const forgotPasswordService =
+    dependencies.forgotPasswordService ?? createForgotPasswordService();
+
+  const resetPasswordService = createResetPasswordService();
+
+  const googleAuthService =
+    dependencies.googleAuthService ??
+    new GoogleAuthService({
+      tokenVerifier: new GoogleTokenVerifierService(),
+    });
+
   router.post(
     '/register',
     validateRequest('body', registrationSchema),
@@ -98,16 +134,36 @@ export function createAuthRouter(
   );
 
   router.post(
+    '/forgot-password',
+    forgotPasswordRateLimit,
+    validateRequest('body', forgotPasswordSchema),
+    createForgotPasswordController(forgotPasswordService),
+  );
+
+  router.post(
+    '/reset-password',
+    validateRequest('body', resetPasswordSchema),
+    createResetPasswordController(resetPasswordService),
+  );
+
+  router.post(
     '/login',
     validateRequest('body', loginSchema),
     createLoginController(loginService, authTokenService),
   );
 
   router.post(
+    '/google',
+    validateRequest('body', googleAuthSchema),
+    createGoogleAuthController(googleAuthService, authTokenService),
+  );
+
+  router.post(
     '/refresh-token',
-    validateRequest('body', refreshTokenSchema),
     refreshTokenController.refresh.bind(refreshTokenController),
   );
+
+  router.post('/logout', logoutController);
 
   return router;
 }

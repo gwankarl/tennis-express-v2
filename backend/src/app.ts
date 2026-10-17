@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
+import cookieParser from 'cookie-parser';
 
 import { errorHandler } from './middleware/error-handler.js';
 import { notFoundHandler } from './middleware/not-found.js';
@@ -31,6 +32,9 @@ export function createApp(dependencies: V1RouterDependencies = {}) {
   /* Attach request identifiers and log incoming requests. */
   app.use(requestIdMiddleware);
   app.use(requestLoggerMiddleware);
+
+  /* Parse cookies for authentication and session-management endpoints. */
+  app.use(cookieParser());
 
   /* Restrict browser access to the configured frontend origin. */
   app.use(
