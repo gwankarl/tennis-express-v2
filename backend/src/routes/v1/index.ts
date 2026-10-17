@@ -6,6 +6,15 @@ import type { RegistrationService } from '../../modules/auth/services/registrati
 import type { ResendVerificationService } from '../../modules/auth/services/resend-verification.service.js';
 import type { GoogleAuthService } from '../../modules/auth/services/google-auth.service.js';
 
+import { createUsersRouter } from '../../modules/users/routes/users.routes.js';
+import type { CurrentUserService } from '../../modules/users/services/current-user.service.js';
+import type { AccessTokenService } from '../../modules/auth/services/access-token.service.js';
+import type { SessionService } from '../../modules/auth/services/session.service.js';
+import type { ProfileUpdateService } from '../../modules/users/services/profile-update.service.js';
+import type { ProfileImageUpdateService } from '../../modules/users/services/profile-image-update.service.js';
+
+import type { AccountDeletionRequestService } from '../../modules/users/services/account-deletion-request.service.js';
+
 /**
  * Optional dependencies for constructing the version 1 API router.
  *
@@ -23,6 +32,22 @@ export interface V1RouterDependencies {
 
   /** Google authentication service forwarded to the authentication router. */
   googleAuthService?: GoogleAuthService;
+
+  /** Current-user service forwarded to the Users router. */
+  currentUserService?: CurrentUserService;
+
+  /** Access-token service forwarded to the Users router. */
+  accessTokenService?: AccessTokenService;
+
+  /** Session service forwarded to the Users router. */
+  sessionService?: SessionService;
+
+  /** Profile-update service forwarded to the Users router. */
+  profileUpdateService?: ProfileUpdateService;
+
+  profileImageUpdateService?: ProfileImageUpdateService;
+
+  accountDeletionRequestService?: AccountDeletionRequestService;
 }
 
 /**
@@ -54,6 +79,19 @@ export function createV1Router(
       emailVerificationService: dependencies.emailVerificationService,
       resendVerificationService: dependencies.resendVerificationService,
       googleAuthService: dependencies.googleAuthService,
+    }),
+  );
+
+  /* Mount user-account endpoints under /users. */
+  v1Router.use(
+    '/users',
+    createUsersRouter({
+      currentUserService: dependencies.currentUserService,
+      accessTokenService: dependencies.accessTokenService,
+      sessionService: dependencies.sessionService,
+      profileUpdateService: dependencies.profileUpdateService,
+      profileImageUpdateService: dependencies.profileImageUpdateService,
+      accountDeletionRequestService: dependencies.accountDeletionRequestService,
     }),
   );
 

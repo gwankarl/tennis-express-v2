@@ -63,6 +63,16 @@ const envSchema = z
     EMAIL_FROM: z.string().default(''),
 
     EMAIL_REPLY_TO: z.string().default(''),
+
+    CLOUDINARY_CLOUD_NAME: z
+      .string()
+      .min(1, 'CLOUDINARY_CLOUD_NAME is required'),
+
+    CLOUDINARY_API_KEY: z.string().min(1, 'CLOUDINARY_API_KEY is required'),
+
+    CLOUDINARY_API_SECRET: z
+      .string()
+      .min(1, 'CLOUDINARY_API_SECRET is required'),
   })
   .superRefine((config, context) => {
     if (
@@ -105,4 +115,7 @@ export const env = Object.freeze({
   refreshTokenTtlSeconds: result.data.REFRESH_TOKEN_TTL_SECONDS,
   cookieSecure: result.data.COOKIE_SECURE,
   passwordResetTokenTtlSeconds: result.data.PASSWORD_RESET_TOKEN_TTL_SECONDS,
+  cloudinaryCloudName: result.data.CLOUDINARY_CLOUD_NAME,
+  cloudinaryApiKey: result.data.CLOUDINARY_API_KEY,
+  cloudinaryApiSecret: result.data.CLOUDINARY_API_SECRET,
 });
