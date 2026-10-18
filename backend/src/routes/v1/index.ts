@@ -27,6 +27,14 @@ import type { CategoryManagementRouterDependencies } from '../../modules/categor
 import type { CategoryManagementControllerService } from '../../modules/categories/controllers/category-management.controller.js';
 import { createCategoryQueryRouter } from '../../modules/categories/routes/category-query.routes.js';
 
+import { createBrandManagementRouter } from '../../modules/brands/routes/brand-management.routes.js';
+import type { BrandManagementRouterDependencies } from '../../modules/brands/routes/brand-management.routes.js';
+
+import type { BrandManagementControllerService } from '../../modules/brands/controllers/brand-management.controller.js';
+import type { BrandStatusControllerService } from '../../modules/brands/controllers/brand-status.controller.js';
+
+import { createBrandQueryRouter } from '../../modules/brands/routes/brand-query.routes.js';
+
 /**
  * Optional dependencies for constructing the version 1 API router.
  *
@@ -82,6 +90,13 @@ export interface V1RouterDependencies {
   >;
 
   categoryManagementService?: CategoryManagementControllerService;
+
+  brandManagement?: Omit<
+    BrandManagementRouterDependencies,
+    'brandManagementService' | 'brandStatusService'
+  >;
+  brandManagementService?: BrandManagementControllerService;
+  brandStatusService?: BrandStatusControllerService;
 }
 
 /**
@@ -162,8 +177,22 @@ export function createV1Router(
     }),
   );
 
+  v1Router.use(
+    '/admin/brands',
+    createBrandManagementRouter({
+      ...dependencies.brandManagement,
+      accessTokenService: dependencies.accessTokenService,
+      sessionService: dependencies.sessionService,
+      brandManagementService: dependencies.brandManagementService,
+      brandStatusService: dependencies.brandStatusService,
+    }),
+  );
+
   /* Mount public category retrieval endpoints. */
   v1Router.use('/categories', createCategoryQueryRouter());
+
+  /* Mount public brand retrieval endpoints. */
+  v1Router.use('/brands', createBrandQueryRouter());
 
   return v1Router;
 }
