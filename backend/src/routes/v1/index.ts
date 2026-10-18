@@ -15,6 +15,18 @@ import type { ProfileImageUpdateService } from '../../modules/users/services/pro
 
 import type { AccountDeletionRequestService } from '../../modules/users/services/account-deletion-request.service.js';
 
+import { createSellerApplicationsRouter } from '../../modules/sellers/routes/seller-applications.routes.js';
+import type { SellerApplicationsRouterDependencies } from '../../modules/sellers/routes/seller-applications.routes.js';
+import type { SellerApplicationService } from '../../modules/sellers/services/seller-application.service.js';
+
+import { createAdminSellerApplicationReviewRouter } from '../../modules/admin/routes/seller-application-review.routes.js';
+import type { AdminSellerApplicationReviewRouterDependencies } from '../../modules/admin/routes/seller-application-review.routes.js';
+
+import { createCategoryManagementRouter } from '../../modules/categories/routes/category-management.routes.js';
+import type { CategoryManagementRouterDependencies } from '../../modules/categories/routes/category-management.routes.js';
+import type { CategoryManagementControllerService } from '../../modules/categories/controllers/category-management.controller.js';
+import { createCategoryQueryRouter } from '../../modules/categories/routes/category-query.routes.js';
+
 /**
  * Optional dependencies for constructing the version 1 API router.
  *
@@ -48,6 +60,28 @@ export interface V1RouterDependencies {
   profileImageUpdateService?: ProfileImageUpdateService;
 
   accountDeletionRequestService?: AccountDeletionRequestService;
+
+  /** Dependencies forwarded to the seller applications router. */
+  sellerApplications?: Omit<
+    SellerApplicationsRouterDependencies,
+    'sellerApplicationService'
+  >;
+
+  sellerApplicationService?: SellerApplicationService;
+
+  /** Additional dependencies forwarded to admin seller application review routes. */
+  adminSellerApplicationReview?: Omit<
+    AdminSellerApplicationReviewRouterDependencies,
+    'sellerApplicationService'
+  >;
+
+  /** Dependencies forwarded to administrator-only category management routes. */
+  categoryManagement?: Omit<
+    CategoryManagementRouterDependencies,
+    'categoryManagementService'
+  >;
+
+  categoryManagementService?: CategoryManagementControllerService;
 }
 
 /**
@@ -94,6 +128,42 @@ export function createV1Router(
       accountDeletionRequestService: dependencies.accountDeletionRequestService,
     }),
   );
+
+  /* Mount authenticated seller application endpoints. */
+  v1Router.use(
+    '/seller-applications',
+    createSellerApplicationsRouter({
+      ...dependencies.sellerApplications,
+      accessTokenService: dependencies.accessTokenService,
+      sessionService: dependencies.sessionService,
+      sellerApplicationService: dependencies.sellerApplicationService,
+    }),
+  );
+
+  /* Mount administrator-only seller application review endpoints. */
+  v1Router.use(
+    '/admin/seller-applications',
+    createAdminSellerApplicationReviewRouter({
+      ...dependencies.adminSellerApplicationReview,
+      accessTokenService: dependencies.accessTokenService,
+      sessionService: dependencies.sessionService,
+      sellerApplicationService: dependencies.sellerApplicationService,
+    }),
+  );
+
+  /* Mount administrator-only category management endpoints. */
+  v1Router.use(
+    '/admin/categories',
+    createCategoryManagementRouter({
+      ...dependencies.categoryManagement,
+      accessTokenService: dependencies.accessTokenService,
+      sessionService: dependencies.sessionService,
+      categoryManagementService: dependencies.categoryManagementService,
+    }),
+  );
+
+  /* Mount public category retrieval endpoints. */
+  v1Router.use('/categories', createCategoryQueryRouter());
 
   return v1Router;
 }
