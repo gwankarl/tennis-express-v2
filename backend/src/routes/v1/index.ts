@@ -19,8 +19,8 @@ import { createSellerApplicationsRouter } from '../../modules/sellers/routes/sel
 import type { SellerApplicationsRouterDependencies } from '../../modules/sellers/routes/seller-applications.routes.js';
 import type { SellerApplicationService } from '../../modules/sellers/services/seller-application.service.js';
 
-import { createAdminSellerApplicationReviewRouter } from '../../modules/admin/routes/seller-application-review.routes.js';
-import type { AdminSellerApplicationReviewRouterDependencies } from '../../modules/admin/routes/seller-application-review.routes.js';
+import { createAdminSellerApplicationReviewRouter } from '../../modules/admin/sellers/routes/seller-application-review.routes.js';
+import type { AdminSellerApplicationReviewRouterDependencies } from '../../modules/admin/sellers/routes/seller-application-review.routes.js';
 
 import { createCategoryManagementRouter } from '../../modules/categories/routes/category-management.routes.js';
 import type { CategoryManagementRouterDependencies } from '../../modules/categories/routes/category-management.routes.js';
@@ -34,6 +34,15 @@ import type { BrandManagementControllerService } from '../../modules/brands/cont
 import type { BrandStatusControllerService } from '../../modules/brands/controllers/brand-status.controller.js';
 
 import { createBrandQueryRouter } from '../../modules/brands/routes/brand-query.routes.js';
+
+import { createStoreManagementRouter } from '../../modules/stores/routes/store-management.routes.js';
+import type { StoreManagementRouterDependencies } from '../../modules/stores/routes/store-management.routes.js';
+import type { StoreManagementService } from '../../modules/stores/services/store-management.service.js';
+
+import { createStoreQueryRouter } from '../../modules/stores/routes/store-query.routes.js';
+
+import { createProductRouter } from '../../modules/products/routes/product.routes.js';
+import { createAdminProductRouter } from '../../modules/admin/products/routes/admin-product.routes.js';
 
 /**
  * Optional dependencies for constructing the version 1 API router.
@@ -97,6 +106,14 @@ export interface V1RouterDependencies {
   >;
   brandManagementService?: BrandManagementControllerService;
   brandStatusService?: BrandStatusControllerService;
+
+  /** Dependencies forwarded to the store-management router. */
+  storeManagement?: Omit<
+    StoreManagementRouterDependencies,
+    'storeManagementService'
+  >;
+
+  storeManagementService?: StoreManagementService;
 }
 
 /**
@@ -188,11 +205,49 @@ export function createV1Router(
     }),
   );
 
+  /* Mount administrator-only product moderation endpoints. */
+  v1Router.use(
+    '/admin/products',
+    createAdminProductRouter({
+      accessTokenService: dependencies.accessTokenService,
+      sessionService: dependencies.sessionService,
+    }),
+  );
+
+  /* Mount authenticated seller store-management endpoints. */
+  v1Router.use(
+    '/stores',
+    createStoreManagementRouter({
+      ...dependencies.storeManagement,
+      accessTokenService: dependencies.accessTokenService,
+      sessionService: dependencies.sessionService,
+      storeManagementService: dependencies.storeManagementService,
+    }),
+  );
+
+  /* Mount authenticated seller product-creation endpoints. */
+  v1Router.use(
+    '/products',
+    createProductRouter({
+      accessTokenService: dependencies.accessTokenService,
+      sessionService: dependencies.sessionService,
+    }),
+  );
+
   /* Mount public category retrieval endpoints. */
   v1Router.use('/categories', createCategoryQueryRouter());
 
   /* Mount public brand retrieval endpoints. */
   v1Router.use('/brands', createBrandQueryRouter());
+
+  /* Mount public store profile retrieval endpoints. */
+  v1Router.use(
+    '/stores',
+    createStoreQueryRouter({
+      accessTokenService: dependencies.accessTokenService,
+      sessionService: dependencies.sessionService,
+    }),
+  );
 
   return v1Router;
 }
