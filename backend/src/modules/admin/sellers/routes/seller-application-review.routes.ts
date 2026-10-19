@@ -1,12 +1,12 @@
 import { Router } from 'express';
 
-import { validateRequest } from '../../../middleware/validate-request.js';
+import { validateRequest } from '../../../../middleware/validate-request.js';
 
-import { createRequireAuthentication } from '../../auth/middleware/require-authentication.js';
-import type { RequireAuthenticationDependencies } from '../../auth/middleware/require-authentication.js';
-import { createRequireRole } from '../../auth/middleware/require-role.js';
+import { createRequireAuthentication } from '../../../auth/middleware/require-authentication.js';
+import type { RequireAuthenticationDependencies } from '../../../auth/middleware/require-authentication.js';
+import { createRequireRole } from '../../../auth/middleware/require-role.js';
 
-import { SellerApplicationService } from '../../sellers/services/seller-application.service.js';
+import { SellerApplicationService } from '../../../sellers/services/seller-application.service.js';
 import type { SellerApplicationReviewControllerDependencies } from '../controllers/seller-application-review.controller.js';
 import { createSellerApplicationReviewController } from '../controllers/seller-application-review.controller.js';
 
@@ -15,7 +15,7 @@ import {
   sellerApplicationReviewParamsSchema,
 } from '../validations/seller-application-review.validation.js';
 
-import { CategoryCheckerService } from '../../categories/services/category-checker.service.js';
+import { CategoryCheckerService } from '../../../categories/services/category-checker.service.js';
 
 /** Dependencies required by the admin seller application review router. */
 export interface AdminSellerApplicationReviewRouterDependencies

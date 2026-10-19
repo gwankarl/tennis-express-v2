@@ -1,6 +1,6 @@
 import type { RequestHandler } from 'express';
 
-import type { SellerApplicationService } from '../../sellers/services/seller-application.service.js';
+import type { SellerApplicationService } from '../../../sellers/services/seller-application.service.js';
 
 /** Dependencies required by the seller application review controller. */
 export interface SellerApplicationReviewControllerDependencies {
