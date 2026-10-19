@@ -1,6 +1,7 @@
 import type { RequestHandler } from 'express';
 
-import type { SellerApplicationService } from '../../../sellers/services/seller-application.service.js';
+import type { SellerApplicationService } from '../services/admin-seller-application.service.js';
+import { AppError } from '../../../../shared/errors/app-error.js';
 
 /** Dependencies required by the seller application review controller. */
 export interface SellerApplicationReviewControllerDependencies {
@@ -57,8 +58,43 @@ export function createSellerApplicationReviewController(
     }
   };
 
+  const getApplicationById: RequestHandler = async (req, res, next) => {
+    try {
+      if (!req.auth) {
+        throw new AppError({
+          statusCode: 401,
+          code: 'AUTHENTICATION_REQUIRED',
+          message: 'Authentication is required to access this resource.',
+        });
+      }
+
+      const applicationId = req.params.applicationId;
+
+      if (typeof applicationId !== 'string') {
+        throw new AppError({
+          statusCode: 400,
+          code: 'INVALID_APPLICATION_ID',
+          message: 'A valid seller application ID is required.',
+        });
+      }
+
+      const application = await sellerApplicationService.getMyApplicationById(
+        req.auth.userId,
+        applicationId,
+      );
+
+      res.status(200).json({
+        success: true,
+        data: { application },
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
   return {
     approveApplication,
     rejectApplication,
+    getApplicationById,
   };
 }

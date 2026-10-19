@@ -1,4 +1,4 @@
-import { ProductModel } from '../../../products/models/product.model.js';
+import { ProductModel } from '../../../shared/products/models/product.model.js';
 
 export class AdminProductRetrievalService {
   async getPendingProducts(page = 1, limit = 20) {

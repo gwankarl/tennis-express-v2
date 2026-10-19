@@ -9,9 +9,13 @@ import { requestIdMiddleware } from './middleware/request-id.js';
 import { requestLoggerMiddleware } from './middleware/request-logger.js';
 
 import {
-  createV1Router,
-  type V1RouterDependencies,
-} from './routes/v1/index.js';
+  createV1PublicRouter,
+  type V1PublicRouterDependencies,
+} from './modules/public/index.js';
+
+import { createV1AdminRouter } from './modules/admin/index.js';
+import { createV1SellerRouter } from './modules/sellers/index.js';
+import { createV1UserRouter } from './modules/users/index.js';
 
 /**
  * Creates and configures the Express application.
@@ -23,7 +27,7 @@ import {
  * @param dependencies - Optional services required by API routes.
  * @returns The configured Express application.
  */
-export function createApp(dependencies: V1RouterDependencies = {}) {
+export function createApp(dependencies: V1PublicRouterDependencies = {}) {
   const app = express();
 
   /* Apply standard HTTP security headers. */
@@ -58,7 +62,13 @@ export function createApp(dependencies: V1RouterDependencies = {}) {
   app.use(express.urlencoded({ extended: false, limit: '1mb' }));
 
   /* Mount all version 1 API endpoints under a shared prefix. */
-  app.use('/api/v1', createV1Router(dependencies));
+  app.use('/api/v1', createV1PublicRouter(dependencies));
+
+  app.use('/api/v1/admin', createV1AdminRouter());
+
+  app.use('/api/v1/seller', createV1SellerRouter());
+
+  app.use('/api/v1/user', createV1UserRouter());
 
   /* Handle requests that did not match a registered route. */
   app.use(notFoundHandler);

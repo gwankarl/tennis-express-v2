@@ -19,3 +19,12 @@ export const rejectSellerApplicationSchema = z
       .max(1000, 'The rejection reason must not exceed 1000 characters.'),
   })
   .strict();
+
+/** Validates the seller application identifier route parameter. */
+export const applicationIdParamsSchema = z
+  .object({
+    applicationId: z
+      .string()
+      .regex(/^[0-9a-fA-F]{24}$/, 'Invalid application ID.'),
+  })
+  .strict();
