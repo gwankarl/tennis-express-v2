@@ -24,6 +24,19 @@ import {
   getSellerProducts,
 } from '../controllers/product-retrieval.controller.js';
 
+import {
+  createProductVariant,
+  getProductVariants,
+  updateProductVariant,
+  updateProductVariantStatus,
+} from '../controllers/product-variant.controller.js';
+
+import {
+  createProductVariantSchema,
+  updateProductVariantSchema,
+  updateProductVariantStatusSchema,
+} from '../validations/variants/product-variant.schema.js';
+
 /* -------------------------------------------------------------------------- */
 /* Product routes                                                             */
 /* -------------------------------------------------------------------------- */
@@ -98,6 +111,39 @@ export function createProductRouter(): Router {
     requireAuthentication,
     requireSeller,
     resubmitRejectedProduct,
+  );
+
+  /* Product variant routes */
+
+  router.post(
+    '/mine/:productId/variants',
+    requireAuthentication,
+    requireSeller,
+    validateRequest('body', createProductVariantSchema),
+    createProductVariant,
+  );
+
+  router.get(
+    '/mine/:productId/variants',
+    requireAuthentication,
+    requireSeller,
+    getProductVariants,
+  );
+
+  router.patch(
+    '/mine/:productId/variants/:variantId',
+    requireAuthentication,
+    requireSeller,
+    validateRequest('body', updateProductVariantSchema),
+    updateProductVariant,
+  );
+
+  router.patch(
+    '/mine/:productId/variants/:variantId/status',
+    requireAuthentication,
+    requireSeller,
+    validateRequest('body', updateProductVariantStatusSchema),
+    updateProductVariantStatus,
   );
 
   return router;

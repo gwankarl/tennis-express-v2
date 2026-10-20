@@ -31,6 +31,7 @@ export interface CategoryAttribute {
   type: CategoryAttributeType;
   required: boolean;
   options: string[];
+  filterable?: boolean;
 }
 
 /* -------------------------------------------------------------------------- */

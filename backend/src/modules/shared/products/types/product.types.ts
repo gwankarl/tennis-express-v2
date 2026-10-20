@@ -21,6 +21,12 @@ export interface ProductImage {
   sortOrder: number;
 }
 
+/** Summary of approved customer reviews for a product. */
+export interface ProductRatingSummary {
+  averageRating: number;
+  totalReviews: number;
+}
+
 /** Fields defining a product record. */
 export interface ProductFields {
   storeId: Types.ObjectId;
@@ -33,6 +39,7 @@ export interface ProductFields {
   condition: ProductCondition;
   attributes: ProductAttributes;
   images: ProductImage[];
+  ratingSummary: ProductRatingSummary;
   moderationStatus: ProductModerationStatus;
   publicationStatus: ProductPublicationStatus;
   publishedAt: Date | null;

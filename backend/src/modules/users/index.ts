@@ -1,8 +1,8 @@
 import { Router } from 'express';
 
 import { createUserAccountsRouter } from './account/routes/user-accounts.routes.js';
-
 import { createSellerApplicationsRouter } from './seller-application/routes/seller-applications.routes.js';
+import { createWishlistRouter } from './wishlist/routes/wishlist.routes.js';
 
 /**
  * Creates the version 1 API router and registers its endpoints.
@@ -12,11 +12,14 @@ import { createSellerApplicationsRouter } from './seller-application/routes/sell
 export function createV1UserRouter(): Router {
   const v1UserRouter = Router();
 
-  /* Mount user-account endpoints under /users. */
+  /* Mount user-account endpoints. */
   v1UserRouter.use('/acounts', createUserAccountsRouter());
 
-  /* Mount authenticated users seller application endpoints. */
+  /* Mount authenticated seller-application endpoints. */
   v1UserRouter.use('/seller-applications', createSellerApplicationsRouter());
+
+  /* Mount authenticated wishlist endpoints. */
+  v1UserRouter.use('/wishlist', createWishlistRouter());
 
   return v1UserRouter;
 }

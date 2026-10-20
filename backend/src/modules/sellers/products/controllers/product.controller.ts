@@ -28,7 +28,7 @@ export const createProduct: RequestHandler = async (req, res, next) => {
     }
 
     const input = req.body as CreateProductInput;
-    const { primaryImageIndex, ...productInput } = input;
+    const { primaryImageIndex, initialVariant, ...productInput } = input;
 
     const uploadedFiles = Array.isArray(req.files) ? req.files : [];
 
@@ -37,18 +37,20 @@ export const createProduct: RequestHandler = async (req, res, next) => {
       mimetype: file.mimetype,
     }));
 
-    const product = await productCreationService.createProduct(
+    const result = await productCreationService.createProduct(
       sellerId,
       productInput,
       imageFiles,
       primaryImageIndex,
+      initialVariant,
     );
 
     res.status(201).json({
       success: true,
       message: 'Product listing created successfully.',
       data: {
-        product,
+        product: result.product,
+        variant: result.variant,
       },
     });
   } catch (error) {

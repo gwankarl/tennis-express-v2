@@ -27,6 +27,7 @@ const categoryAttributeSchema = z
       ),
     type: z.enum(CATEGORY_ATTRIBUTE_TYPES),
     required: z.boolean().default(false),
+    filterable: z.boolean().default(false),
     options: z.array(z.string().trim().min(1).max(100)).default([]),
   })
   .superRefine((attribute, context) => {

@@ -105,6 +105,27 @@ const productSchema = new Schema<ProductFields>(
         message: 'A product can have at most one primary image.',
       },
     },
+
+    ratingSummary: {
+      averageRating: {
+        type: Number,
+        required: true,
+        default: 0,
+        min: 0,
+        max: 5,
+      },
+      totalReviews: {
+        type: Number,
+        required: true,
+        default: 0,
+        min: 0,
+        validate: {
+          validator: Number.isInteger,
+          message: 'Total reviews must be an integer.',
+        },
+      },
+    },
+
     moderationStatus: {
       type: String,
       enum: ['pending', 'approved', 'rejected'],

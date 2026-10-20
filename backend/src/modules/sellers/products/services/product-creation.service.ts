@@ -6,6 +6,8 @@ import { StoreModel } from '../../../shared/stores/models/store.model.js';
 import { CloudinaryCleanupQueueService } from '../../../shared/users/services/cloudinary-cleanup-queue.service.js';
 import { AppError } from '../../../../shared/errors/app-error.js';
 import { ProductModel } from '../../../shared/products/models/product.model.js';
+import { ProductVariantModel } from '../../../shared/products/models/product-variant.model.js';
+import type { VariantDiscount } from '../../../shared/products/types/product-variant.types.js';
 import {
   productImageUploadService,
   type ProductImageUploadInput,
@@ -15,7 +17,10 @@ import type { ProductImage } from '../../../shared/products/types/product.types.
 import type { CreateProductInput } from '../validations/create-product.schema.js';
 
 /** Product details accepted by the creation service, excluding image references. */
-export type CreateProductServiceInput = Omit<CreateProductInput, 'images'>;
+export type CreateProductServiceInput = Omit<
+  CreateProductInput,
+  'images' | 'initialVariant'
+>;
 
 /** Handles the creation of seller product listings and their images. */
 export class ProductCreationService {
@@ -33,7 +38,8 @@ export class ProductCreationService {
     sellerId: string,
     input: CreateProductServiceInput,
     imageFiles: ProductImageUploadInput[],
-    primaryImageIndex?: number,
+    primaryImageIndex: number | undefined,
+    initialVariant: CreateProductInput['initialVariant'],
   ) {
     if (!Types.ObjectId.isValid(sellerId)) {
       throw new AppError({
@@ -124,8 +130,10 @@ export class ProductCreationService {
         primaryImageIndex,
       );
 
+    let createdProductId: Types.ObjectId | undefined;
+
     try {
-      return await ProductModel.create({
+      const product = await ProductModel.create({
         storeId: store._id,
         sellerId: sellerObjectId,
         name: input.name,
@@ -141,9 +149,55 @@ export class ProductCreationService {
         publishedAt: null,
         submittedAt: null,
       });
+
+      createdProductId = product._id;
+
+      const discount = this.normalizeInitialDiscount(
+        initialVariant.discount ?? null,
+      );
+
+      const variant = await ProductVariantModel.create({
+        productId: product._id,
+        sellerId: sellerObjectId,
+        name: initialVariant.name,
+        attributes: initialVariant.attributes,
+        sku: initialVariant.sku?.trim().toUpperCase() || null,
+        price: initialVariant.price,
+        stockQuantity: initialVariant.stockQuantity,
+        reservedQuantity: 0,
+        status: 'active',
+        discount,
+      });
+
+      return { product, variant };
     } catch (error) {
-      /* Remove uploaded assets if the product could not be saved. */
+      /* Roll back the product if initial variant creation failed. */
+      if (createdProductId) {
+        try {
+          await ProductModel.deleteOne({ _id: createdProductId }).exec();
+        } catch (rollbackError) {
+          console.error(
+            'Failed to remove a product after initial variant creation failed.',
+            { productId: createdProductId.toString(), rollbackError },
+          );
+        }
+      }
+
       await this.queueImagesForCleanup(images);
+
+      if (
+        typeof error === 'object' &&
+        error !== null &&
+        'code' in error &&
+        error.code === 11000
+      ) {
+        throw new AppError({
+          statusCode: 409,
+          code: 'DUPLICATE_VARIANT_SKU',
+          message:
+            'This SKU is already used by another variant belonging to the seller.',
+        });
+      }
 
       throw error;
     }
@@ -209,6 +263,33 @@ export class ProductCreationService {
     }
 
     return slug;
+  }
+
+  /** Converts initial discount date strings into Date objects. */
+  private normalizeInitialDiscount(
+    discount:
+      CreateProductInput['initialVariant']['discount'] | VariantDiscount | null,
+  ): VariantDiscount | null {
+    if (!discount) {
+      return null;
+    }
+
+    return {
+      type: discount.type,
+      value: discount.value,
+      startsAt:
+        discount.startsAt == null
+          ? null
+          : discount.startsAt instanceof Date
+            ? discount.startsAt
+            : new Date(discount.startsAt),
+      endsAt:
+        discount.endsAt == null
+          ? null
+          : discount.endsAt instanceof Date
+            ? discount.endsAt
+            : new Date(discount.endsAt),
+    };
   }
 }
 

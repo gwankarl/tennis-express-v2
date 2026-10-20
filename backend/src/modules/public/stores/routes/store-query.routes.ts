@@ -8,13 +8,16 @@ import type { StoreQueryControllerDependencies } from '../controllers/store-quer
 export interface StoreQueryRouterDependencies
   extends RequireAuthenticationDependencies, StoreQueryControllerDependencies {}
 
-/** Creates routes for public store queries and authenticated owner queries. */
+/** Creates routes for public store queries. */
 export function createStoreQueryRouter(
   dependencies: StoreQueryRouterDependencies = {},
 ): Router {
   const storeQueryRouter = Router();
 
   const controller = createStoreQueryController(dependencies);
+
+  /* Retrieve publicly visible stores with search and location filters. */
+  storeQueryRouter.get('/', controller.getPublicStores);
 
   /* Retrieve a publicly visible store by its slug. */
   storeQueryRouter.get('/:slug', controller.getPublicStoreBySlug);

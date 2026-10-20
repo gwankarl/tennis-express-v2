@@ -34,6 +34,11 @@ const categoryAttributeSchema = new Schema<CategoryAttribute>(
       default: false,
       required: true,
     },
+    filterable: {
+      type: Boolean,
+      default: false,
+      required: true,
+    },
     options: {
       type: [String],
       default: [],

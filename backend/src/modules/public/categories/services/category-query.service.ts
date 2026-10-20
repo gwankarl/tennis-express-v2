@@ -1,36 +1,48 @@
 import { CategoryModel } from '../../../shared/categories/models/category.model.js';
 
+import type { Category } from '../../../shared/categories/types/category.types.js';
+
+/** Represents a public category and its visible subcategories. */
+export interface PublicCategoryTreeNode {
+  id: string;
+  name: string;
+  slug: string;
+  parentId: string | null;
+  description: string | null;
+  sortOrder: number;
+  attributes: Category['attributes'];
+  children: PublicCategoryTreeNode[];
+}
+
 /** Provides read operations for public category browsing. */
 export class CategoryQueryService {
   /**
-   * Retrieves categories that are active and have no inactive ancestors.
-   * Results are flat, unpaginated, and ordered by sort order then name.
+   * Retrieves active categories whose ancestors are also active,
+   * then arranges them into a recursively nested category tree.
    */
-  static async getActiveCategories() {
+  static async getActiveCategories(): Promise<PublicCategoryTreeNode[]> {
     /*
-     * Load all categories so ancestor visibility can be checked,
-     * including ancestors that are currently inactive.
-     * Audit fields are excluded from the returned category documents.
+     * Load categories so visibility can be checked against every ancestor,
+     * including ancestors that are inactive.
      */
     const categories = await CategoryModel.find({})
-      .select('-createdBy -updatedBy')
-      .sort({ sortOrder: 1, name: 1 });
+      .select('_id name slug parentId description attributes status sortOrder')
+      .sort({ sortOrder: 1, name: 1 })
+      .lean()
+      .exec();
 
     const categoriesById = new Map(
       categories.map((category) => [category._id.toString(), category]),
     );
 
-    return categories.filter((category) => {
+    const visibleCategories = categories.filter((category) => {
       if (category.status !== 'active') {
         return false;
       }
 
       let parentId = category.parentId;
 
-      /*
-       * A category is visible only when every ancestor exists
-       * and is active. This check applies recursively at all levels.
-       */
+      /* A category is visible only when every ancestor is active and exists. */
       while (parentId) {
         const parent = categoriesById.get(parentId.toString());
 
@@ -43,5 +55,40 @@ export class CategoryQueryService {
 
       return true;
     });
+
+    const nodesById = new Map<string, PublicCategoryTreeNode>();
+
+    for (const category of visibleCategories) {
+      nodesById.set(category._id.toString(), {
+        id: category._id.toString(),
+        name: category.name,
+        slug: category.slug,
+        parentId: category.parentId?.toString() ?? null,
+        description: category.description ?? null,
+        sortOrder: category.sortOrder,
+        attributes: category.attributes,
+        children: [],
+      });
+    }
+
+    const rootCategories: PublicCategoryTreeNode[] = [];
+
+    for (const category of visibleCategories) {
+      const node = nodesById.get(category._id.toString())!;
+      const parentId = category.parentId?.toString();
+
+      if (!parentId) {
+        rootCategories.push(node);
+        continue;
+      }
+
+      const parent = nodesById.get(parentId);
+
+      if (parent) {
+        parent.children.push(node);
+      }
+    }
+
+    return rootCategories;
   }
 }
