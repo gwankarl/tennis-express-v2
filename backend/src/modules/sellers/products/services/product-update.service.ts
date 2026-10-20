@@ -240,6 +240,84 @@ export class ProductUpdateService {
   }
 
   /**
+   * Archives a published product owned by the seller.
+   */
+  async archiveSellerProduct(sellerId: string, productId: string) {
+    this.validateObjectId(sellerId, 'INVALID_SELLER_ID', 'seller');
+    this.validateObjectId(productId, 'INVALID_PRODUCT_ID', 'product');
+
+    const product = await ProductModel.findOne({
+      _id: new Types.ObjectId(productId),
+      sellerId: new Types.ObjectId(sellerId),
+    }).exec();
+
+    if (!product) {
+      throw new AppError({
+        statusCode: 404,
+        code: 'PRODUCT_NOT_FOUND',
+        message: 'The requested product was not found.',
+      });
+    }
+
+    if (
+      product.moderationStatus !== 'approved' ||
+      product.publicationStatus !== 'published'
+    ) {
+      throw new AppError({
+        statusCode: 409,
+        code: 'PRODUCT_NOT_ARCHIVABLE',
+        message: 'Only approved, published products can be archived.',
+      });
+    }
+
+    product.publicationStatus = 'archived';
+
+    await product.save();
+
+    return product;
+  }
+
+  /**
+   * Restores a previously approved product from archived status.
+   */
+  async restoreSellerProduct(sellerId: string, productId: string) {
+    this.validateObjectId(sellerId, 'INVALID_SELLER_ID', 'seller');
+    this.validateObjectId(productId, 'INVALID_PRODUCT_ID', 'product');
+
+    const product = await ProductModel.findOne({
+      _id: new Types.ObjectId(productId),
+      sellerId: new Types.ObjectId(sellerId),
+    }).exec();
+
+    if (!product) {
+      throw new AppError({
+        statusCode: 404,
+        code: 'PRODUCT_NOT_FOUND',
+        message: 'The requested product was not found.',
+      });
+    }
+
+    if (
+      product.moderationStatus !== 'approved' ||
+      product.publicationStatus !== 'archived' ||
+      product.publishedAt === null
+    ) {
+      throw new AppError({
+        statusCode: 409,
+        code: 'PRODUCT_NOT_RESTORABLE',
+        message:
+          'Only previously published, approved products can be restored.',
+      });
+    }
+
+    product.publicationStatus = 'published';
+
+    await product.save();
+
+    return product;
+  }
+
+  /**
    * Validates a MongoDB ObjectId string.
    */
   private validateObjectId(value: string, code: string, label: string): void {

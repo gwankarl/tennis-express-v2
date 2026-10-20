@@ -14,7 +14,11 @@ import { validateProductImageContent } from '../middleware/product-image-content
 import { uploadProductImages } from '../middleware/product-image-upload.middleware.js';
 import { createProductSchema } from '../validations/create-product.schema.js';
 import { updateProductSchema } from '../validations/update-product.schema.js';
-import { updateSellerProduct } from '../controllers/product-update.controller.js';
+import {
+  updateSellerProduct,
+  archiveSellerProduct,
+  restoreSellerProduct,
+} from '../controllers/product-update.controller.js';
 import {
   getSellerProductById,
   getSellerProducts,
@@ -66,6 +70,20 @@ export function createProductRouter(): Router {
     validateProductImageContent,
     validateRequest('body', updateProductSchema),
     updateSellerProduct,
+  );
+
+  router.patch(
+    '/mine/:productId/archive',
+    requireAuthentication,
+    requireSeller,
+    archiveSellerProduct,
+  );
+
+  router.patch(
+    '/mine/:productId/restore',
+    requireAuthentication,
+    requireSeller,
+    restoreSellerProduct,
   );
 
   router.post(

@@ -58,3 +58,67 @@ export const updateSellerProduct: RequestHandler = async (req, res, next) => {
     next(error);
   }
 };
+
+/**
+ * Archives a published product owned by the seller.
+ */
+export const archiveSellerProduct: RequestHandler = async (req, res, next) => {
+  try {
+    const sellerId = req.auth?.userId;
+
+    if (!sellerId) {
+      throw new AppError({
+        statusCode: 401,
+        code: 'AUTHENTICATION_REQUIRED',
+        message: 'Authentication is required to archive a product.',
+      });
+    }
+
+    const productId = String(req.params.productId);
+
+    const product = await productUpdateService.archiveSellerProduct(
+      sellerId,
+      productId,
+    );
+
+    res.status(200).json({
+      success: true,
+      message: 'Product archived successfully.',
+      data: { product },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Restores a previously published product owned by the seller.
+ */
+export const restoreSellerProduct: RequestHandler = async (req, res, next) => {
+  try {
+    const sellerId = req.auth?.userId;
+
+    if (!sellerId) {
+      throw new AppError({
+        statusCode: 401,
+        code: 'AUTHENTICATION_REQUIRED',
+        message: 'Authentication is required to restore a product.',
+      });
+    }
+
+    const productId = String(req.params.productId);
+
+    const product = await productUpdateService.restoreSellerProduct(
+      sellerId,
+      productId,
+    );
+
+    res.status(200).json({
+      success: true,
+      message: 'Product restored successfully.',
+      data: { product },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
