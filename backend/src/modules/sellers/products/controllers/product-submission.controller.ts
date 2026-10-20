@@ -29,3 +29,30 @@ export async function submitProductForApproval(
     data: { product },
   });
 }
+
+export async function resubmitRejectedProduct(
+  req: Request,
+  res: Response,
+): Promise<Response> {
+  const sellerId = req.auth?.userId;
+
+  if (!sellerId) {
+    throw new AppError({
+      statusCode: 401,
+      code: 'UNAUTHENTICATED',
+      message: 'Authentication is required.',
+    });
+  }
+
+  const productId = String(req.params.productId);
+
+  const product = await productSubmissionService.resubmitRejectedProduct(
+    sellerId,
+    productId,
+  );
+
+  return res.status(200).json({
+    message: 'Rejected product resubmitted for administrative approval.',
+    data: { product },
+  });
+}

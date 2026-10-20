@@ -6,7 +6,10 @@ import { validateRequest } from '../../../../middleware/validate-request.js';
 import type { AccessTokenService } from '../../../shared/auth/services/access-token.service.js';
 import type { SessionService } from '../../../shared/auth/services/session.service.js';
 import { createProduct } from '../controllers/product.controller.js';
-import { submitProductForApproval } from '../controllers/product-submission.controller.js';
+import {
+  submitProductForApproval,
+  resubmitRejectedProduct,
+} from '../controllers/product-submission.controller.js';
 import { validateProductImageContent } from '../middleware/product-image-content-validation.middleware.js';
 import { uploadProductImages } from '../middleware/product-image-upload.middleware.js';
 import { createProductSchema } from '../validations/create-product.schema.js';
@@ -70,6 +73,13 @@ export function createProductRouter(): Router {
     requireAuthentication,
     requireSeller,
     submitProductForApproval,
+  );
+
+  router.post(
+    '/mine/:productId/resubmit',
+    requireAuthentication,
+    requireSeller,
+    resubmitRejectedProduct,
   );
 
   return router;
