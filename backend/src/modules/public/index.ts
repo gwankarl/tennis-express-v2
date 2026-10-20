@@ -7,10 +7,9 @@ import type { ResendVerificationService } from './auth/services/resend-verificat
 import type { GoogleAuthService } from './auth/services/google-auth.service.js';
 
 import { createBrandQueryRouter } from './brands/routes/brand-query.routes.js';
-
 import { createCategoryQueryRouter } from './categories/routes/category-query.routes.js';
-
 import { createStoreQueryRouter } from './stores/routes/store-query.routes.js';
+import { createProductQueryRouter } from './products/routes/product-query.routes.js';
 
 /**
  * Optional dependencies for constructing the version 1 API router.
@@ -70,6 +69,9 @@ export function createV1PublicRouter(
 
   /* Mount public store profile retrieval endpoints. */
   v1PublicRouter.use('/stores', createStoreQueryRouter());
+
+  /* Mount public product detail retrieval endpoints. */
+  v1PublicRouter.use('/products', createProductQueryRouter());
 
   return v1PublicRouter;
 }
