@@ -184,7 +184,7 @@ export class CategoryManagementService {
       .lean()
       .exec();
 
-    let frontier = descendants.map((descendant) => ({
+    const frontier = descendants.map((descendant) => ({
       id: descendant._id,
       depth: 1,
     }));

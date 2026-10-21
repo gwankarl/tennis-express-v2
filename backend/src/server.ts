@@ -4,6 +4,17 @@ import {
   connectToDatabase,
   disconnectFromDatabase,
 } from './config/database/mongodb.js';
+import { checkoutSessionService } from './modules/users/checkout/services/checkout-session.service.js';
+
+const CHECKOUT_CLEANUP_INTERVAL_MS = 60_000;
+
+const runCheckoutCleanup = (): void => {
+  void checkoutSessionService
+    .expireDueReservations()
+    .catch((error: unknown) => {
+      console.error('Failed to release expired checkout reservations:', error);
+    });
+};
 
 const startServer = async (): Promise<void> => {
   await connectToDatabase();
@@ -14,6 +25,15 @@ const startServer = async (): Promise<void> => {
     console.log(`Server running on port ${env.port}`);
   });
 
+  runCheckoutCleanup();
+
+  const checkoutCleanupTimer = setInterval(
+    runCheckoutCleanup,
+    CHECKOUT_CLEANUP_INTERVAL_MS,
+  );
+
+  checkoutCleanupTimer.unref();
+
   let isShuttingDown = false;
 
   const shutdown = (signal: string): void => {
@@ -22,6 +42,7 @@ const startServer = async (): Promise<void> => {
     }
 
     isShuttingDown = true;
+    clearInterval(checkoutCleanupTimer);
     console.log(`${signal} received. Shutting down gracefully.`);
 
     server.close((error) => {
