@@ -3,6 +3,7 @@ import { Router } from 'express';
 import { createUserAccountsRouter } from './account/routes/user-accounts.routes.js';
 import { createSellerApplicationsRouter } from './seller-application/routes/seller-applications.routes.js';
 import { createWishlistRouter } from './wishlist/routes/wishlist.routes.js';
+import { createCartRouter } from './cart/routes/cart.routes.js';
 
 /**
  * Creates the version 1 API router and registers its endpoints.
@@ -20,6 +21,9 @@ export function createV1UserRouter(): Router {
 
   /* Mount authenticated wishlist endpoints. */
   v1UserRouter.use('/wishlist', createWishlistRouter());
+
+  /* Mount authenticated cart endpoints. */
+  v1UserRouter.use('/cart', createCartRouter());
 
   return v1UserRouter;
 }
