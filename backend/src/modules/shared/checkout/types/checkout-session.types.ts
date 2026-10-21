@@ -1,9 +1,9 @@
 import type { Types } from 'mongoose';
 
-export type CheckoutSessionStatus =
-  'active' | 'expired' | 'completed' | 'cancelled';
-
 export type FulfilmentMethod = 'delivery' | 'collection';
+
+export type CheckoutSessionStatus =
+  'active' | 'expired' | 'completed' | 'cancelled' | 'invalidated';
 
 export interface CheckoutSessionItem {
   productId: Types.ObjectId;
@@ -45,6 +45,7 @@ export interface CheckoutSession {
   discountTotal: number;
   deliveryTotal: number;
   processingFee: number;
+  revision: number;
   total: number;
   reservationExpiresAt: Date | null;
   orderIds: Types.ObjectId[];

@@ -91,9 +91,19 @@ const checkoutSessionSchema = new Schema<CheckoutSession>(
     },
     status: {
       type: String,
-      enum: ['active', 'expired', 'completed', 'cancelled'],
+      enum: ['active', 'expired', 'completed', 'cancelled', 'invalidated'],
       required: true,
       default: 'active',
+    },
+    revision: {
+      type: Number,
+      required: true,
+      default: 1,
+      min: 1,
+      validate: {
+        validator: Number.isSafeInteger,
+        message: 'Checkout revision must be a whole number.',
+      },
     },
     items: { type: [checkoutItemSchema], required: true },
     sellerGroups: { type: [sellerGroupSchema], required: true },
