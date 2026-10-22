@@ -1,12 +1,10 @@
 import { Router } from 'express';
 
 import { createAdminSellerApplicationReviewRouter } from './sellers/routes/seller-application-review.routes.js';
-
 import { createCategoryManagementRouter } from './categories/routes/category-management.routes.js';
-
 import { createBrandManagementRouter } from './brands/routes/brand-management.routes.js';
-
 import { createAdminProductRouter } from './products/routes/admin-product.routes.js';
+import { createAdminPaymentReconciliationRouter } from './payments/routes/admin-payment-reconciliation.routes.js';
 
 /**
  * Creates the version 1 API router and registers its endpoints.
@@ -29,6 +27,9 @@ export function createV1AdminRouter(): Router {
 
   /* Mount administrator-only product moderation endpoints. */
   v1AdminRouter.use('/products', createAdminProductRouter());
+
+  /* Mount administrator-only payment reconciliation endpoints. */
+  v1AdminRouter.use('/payments', createAdminPaymentReconciliationRouter());
 
   return v1AdminRouter;
 }

@@ -73,6 +73,46 @@ const envSchema = z
     CLOUDINARY_API_SECRET: z
       .string()
       .min(1, 'CLOUDINARY_API_SECRET is required'),
+
+    PAYMENT_SIMULATION_ENABLED: z
+      .enum(['true', 'false'])
+      .default('false')
+      .transform((value) => value === 'true'),
+
+    MOCK_PAYMENT_PROCESSING_DELAY_MS: z.coerce
+      .number()
+      .int()
+      .min(0)
+      .max(60_000)
+      .default(1500),
+
+    MOCK_PAYMENT_PROVIDER_1_SCENARIO: z
+      .enum([
+        'success',
+        'failure',
+        'cancelled',
+        'pending',
+        'timeout',
+        'provider_error',
+        'amount_mismatch',
+        'currency_mismatch',
+        'duplicate_notification',
+      ])
+      .default('success'),
+
+    MOCK_PAYMENT_PROVIDER_2_SCENARIO: z
+      .enum([
+        'success',
+        'failure',
+        'cancelled',
+        'pending',
+        'timeout',
+        'provider_error',
+        'amount_mismatch',
+        'currency_mismatch',
+        'duplicate_notification',
+      ])
+      .default('success'),
   })
   .superRefine((config, context) => {
     if (
@@ -118,4 +158,8 @@ export const env = Object.freeze({
   cloudinaryCloudName: result.data.CLOUDINARY_CLOUD_NAME,
   cloudinaryApiKey: result.data.CLOUDINARY_API_KEY,
   cloudinaryApiSecret: result.data.CLOUDINARY_API_SECRET,
+  paymentSimulationEnabled: result.data.PAYMENT_SIMULATION_ENABLED,
+  mockPaymentProcessingDelayMs: result.data.MOCK_PAYMENT_PROCESSING_DELAY_MS,
+  mockPaymentProvider1Scenario: result.data.MOCK_PAYMENT_PROVIDER_1_SCENARIO,
+  mockPaymentProvider2Scenario: result.data.MOCK_PAYMENT_PROVIDER_2_SCENARIO,
 });

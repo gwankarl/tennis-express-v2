@@ -3,6 +3,7 @@ import { Router } from 'express';
 import { createProductRouter } from './products/routes/product.routes.js';
 import { createStoreManagementRouter } from './stores/routes/store-management.routes.js';
 import { createStoreQueryRouter } from './stores/routes/store-query.routes.js';
+import { createSellerOrderPaymentRouter } from './orders/routes/seller-order-payment.routes.js';
 
 /**
  * Creates the version 1 API router and registers its endpoints.
@@ -20,6 +21,9 @@ export function createV1SellerRouter(): Router {
 
   /* Mount public store profile retrieval endpoints. */
   v1SellerRouter.use('/stores', createStoreQueryRouter());
+
+  /* Mount seller order payment-declaration endpoints. */
+  v1SellerRouter.use('/orders', createSellerOrderPaymentRouter());
 
   return v1SellerRouter;
 }

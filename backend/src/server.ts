@@ -5,6 +5,7 @@ import {
   disconnectFromDatabase,
 } from './config/database/mongodb.js';
 import { checkoutSessionService } from './modules/users/checkout/services/checkout-session.service.js';
+import { paymentProcessingService } from './modules/users/payments/services/payment-processing.service.js';
 
 const CHECKOUT_CLEANUP_INTERVAL_MS = 60_000;
 
@@ -14,6 +15,12 @@ const runCheckoutCleanup = (): void => {
     .catch((error: unknown) => {
       console.error('Failed to release expired checkout reservations:', error);
     });
+};
+
+const runPaymentProcessing = (): void => {
+  void paymentProcessingService.processDuePayments().catch((error: unknown) => {
+    console.error('Failed to process due payments:', error);
+  });
 };
 
 const startServer = async (): Promise<void> => {
@@ -26,6 +33,7 @@ const startServer = async (): Promise<void> => {
   });
 
   runCheckoutCleanup();
+  runPaymentProcessing();
 
   const checkoutCleanupTimer = setInterval(
     runCheckoutCleanup,
@@ -33,6 +41,13 @@ const startServer = async (): Promise<void> => {
   );
 
   checkoutCleanupTimer.unref();
+
+  const paymentProcessingTimer = setInterval(
+    runPaymentProcessing,
+    CHECKOUT_CLEANUP_INTERVAL_MS,
+  );
+
+  paymentProcessingTimer.unref();
 
   let isShuttingDown = false;
 
@@ -43,6 +58,7 @@ const startServer = async (): Promise<void> => {
 
     isShuttingDown = true;
     clearInterval(checkoutCleanupTimer);
+    clearInterval(paymentProcessingTimer);
     console.log(`${signal} received. Shutting down gracefully.`);
 
     server.close((error) => {

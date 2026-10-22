@@ -5,6 +5,7 @@ import { createSellerApplicationsRouter } from './seller-application/routes/sell
 import { createWishlistRouter } from './wishlist/routes/wishlist.routes.js';
 import { createCartRouter } from './cart/routes/cart.routes.js';
 import { createCheckoutSessionRouter } from './checkout/routes/checkout-session.routes.js';
+import { createPaymentRouter } from './payments/routes/payment.routes.js';
 
 /**
  * Creates the version 1 API router and registers its endpoints.
@@ -28,6 +29,9 @@ export function createV1UserRouter(): Router {
 
   /* Mount authenticated checkout-session endpoints. */
   v1UserRouter.use('/checkout-sessions', createCheckoutSessionRouter());
+
+  /* Mount authenticated customer payment endpoints. */
+  v1UserRouter.use(createPaymentRouter());
 
   return v1UserRouter;
 }
